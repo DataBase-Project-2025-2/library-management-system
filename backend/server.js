@@ -19,11 +19,13 @@ const membersRoutes = require('./routes/members');
 const booksRoutes = require('./routes/books');
 const loansRoutes = require('./routes/loans');
 const reservationsRoutes = require('./routes/reservations');
+const reviewsRoutes = require('./routes/reviews');
 
 app.use('/api/members', membersRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/loans', loansRoutes);
 app.use('/api/reservations', reservationsRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
@@ -35,7 +37,8 @@ app.get('/', (req, res) => {
       members: '/api/members',
       books: '/api/books',
       loans: '/api/loans',
-      reservations: '/api/reservations'
+      reservations: '/api/reservations',
+      reviews: '/api/reviews'
     }
   });
 });
