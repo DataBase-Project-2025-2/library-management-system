@@ -1,0 +1,421 @@
+/* 오버레이 */
+.book-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* 컨테이너 */
+.book-detail-container {
+  background: white;
+  border-radius: 20px;
+  max-width: 1400px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* 닫기 버튼 */
+.close-btn-top {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #f0f0f0;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.close-btn-top:hover {
+  background: #e0e0e0;
+  transform: rotate(90deg);
+}
+
+.close-btn {
+  padding: 12px 30px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: #5568d3;
+}
+
+/* 메인 컨텐츠 */
+.book-detail-content {
+  display: grid;
+  grid-template-columns: 250px 1fr 350px;
+  gap: 40px;
+  margin-bottom: 30px;
+}
+
+/* 왼쪽: 도서 표지 */
+.book-cover-section {
+  text-align: center;
+}
+
+.book-cover-placeholder {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 중앙: 도서 정보 */
+.book-info-section {
+  flex: 1;
+}
+
+.book-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.book-info-table {
+  width: 100%;
+  margin-bottom: 30px;
+  border-collapse: collapse;
+}
+
+.book-info-table th {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  text-align: left;
+  font-weight: 600;
+  width: 120px;
+  color: #666;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.book-info-table td {
+  padding: 15px 20px;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* 탭 */
+.tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.3s;
+}
+
+.tab:hover {
+  color: #667eea;
+}
+
+.tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+/* 탭 컨텐츠 */
+.tab-content {
+  padding: 20px 0;
+}
+
+.tab-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* 소장정보 테이블 */
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e0e0e0;
+}
+
+.holdings-table thead {
+  background: #f8f9fa;
+}
+
+.holdings-table th,
+.holdings-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid #e0e0e0;
+}
+
+.holdings-table th {
+  font-weight: 600;
+  color: #666;
+}
+
+.status {
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status.available {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.loaned {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* 서평 섹션 */
+.reviews-section {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.write-review-btn {
+  margin-top: 20px;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.write-review-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* 오른쪽: 사이드 섹션 */
+.book-side-section {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* 좋아요 섹션 */
+.like-section {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+}
+
+.like-count {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.like-btn {
+  width: 100%;
+  padding: 15px;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.like-btn:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* 통계 섹션 */
+.stats-section {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 15px;
+}
+
+.stats-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.stats-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stat-tab {
+  flex: 1;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.stat-tab.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.chart-placeholder {
+  background: white;
+  padding: 60px 20px;
+  border-radius: 12px;
+  text-align: center;
+  color: #999;
+  font-size: 24px;
+}
+
+.stats-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+}
+
+/* 관련 도서 */
+.related-books-section {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 15px;
+}
+
+.related-books-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.no-data {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+}
+
+/* 하단 버튼 */
+.book-actions {
+  display: flex;
+  gap: 15px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 18px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.secondary {
+  background: white;
+  border: 2px solid #667eea;
+  color: #667eea;
+}
+
+.action-btn.secondary:hover {
+  background: #f8f9fa;
+}
+
+/* 로딩 & 에러 */
+.loading,
+.error {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+  .book-detail-content {
+    grid-template-columns: 200px 1fr 300px;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 992px) {
+  .book-detail-content {
+    grid-template-columns: 1fr;
+  }
+
+  .book-cover-section {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .book-detail-container {
+    padding: 20px;
+  }
+
+  .book-actions {
+    flex-direction: column;
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { bookAPI } from '../api';
+import BookDetail from './BookDetail';
 import './BookList.css';
 
 function BookList() {
@@ -8,6 +9,7 @@ function BookList() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedBookId, setSelectedBookId] = useState(null);
 
   useEffect(() => {
     fetchBooks();
@@ -131,7 +133,12 @@ function BookList() {
                 >
                   {book.available_copies > 0 ? '📖 대출하기' : '📝 예약하기'}
                 </button>
-                <button className="btn-secondary">상세보기</button>
+                <button 
+                  className="btn-secondary"
+                  onClick={() => setSelectedBookId(book.book_id)}
+                >
+                  상세보기
+                </button>
               </div>
             </div>
           ))
@@ -141,6 +148,14 @@ function BookList() {
       <div className="result-count">
         총 {filteredBooks.length}권의 도서
       </div>
+
+      {/* 도서 상세 모달 */}
+      {selectedBookId && (
+        <BookDetail 
+          bookId={selectedBookId} 
+          onClose={() => setSelectedBookId(null)}
+        />
+      )}
     </div>
   );
 }
