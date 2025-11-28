@@ -18,10 +18,12 @@ app.use(express.urlencoded({ extended: true }));
 const membersRoutes = require('./routes/members');
 const booksRoutes = require('./routes/books');
 const loansRoutes = require('./routes/loans');
+const reservationsRoutes = require('./routes/reservations');
 
 app.use('/api/members', membersRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/loans', loansRoutes);
+app.use('/api/reservations', reservationsRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
@@ -32,7 +34,8 @@ app.get('/', (req, res) => {
     endpoints: {
       members: '/api/members',
       books: '/api/books',
-      loans: '/api/loans'
+      loans: '/api/loans',
+      reservations: '/api/reservations'
     }
   });
 });
