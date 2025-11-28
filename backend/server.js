@@ -20,12 +20,14 @@ const booksRoutes = require('./routes/books');
 const loansRoutes = require('./routes/loans');
 const reservationsRoutes = require('./routes/reservations');
 const reviewsRoutes = require('./routes/reviews');
+const statisticsRoutes = require('./routes/statistics');
 
 app.use('/api/members', membersRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/loans', loansRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/statistics', statisticsRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
@@ -38,7 +40,8 @@ app.get('/', (req, res) => {
       books: '/api/books',
       loans: '/api/loans',
       reservations: '/api/reservations',
-      reviews: '/api/reviews'
+      reviews: '/api/reviews',
+      statistics: '/api/statistics'
     }
   });
 });
