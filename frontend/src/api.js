@@ -9,9 +9,17 @@ const api = axios.create({
   },
 });
 
+// 통계 API
 export const statsAPI = {
   getDashboard: () => api.get('/statistics/dashboard'),
   getPopularBooks: (limit = 10) => api.get(`/statistics/popular-books?limit=${limit}`),
+};
+
+// 도서 API
+export const bookAPI = {
+  getAll: () => api.get('/books'),
+  getById: (id) => api.get(`/books/${id}`),
+  search: (keyword) => api.get(`/books/search/${keyword}`),
 };
 
 export default api;
