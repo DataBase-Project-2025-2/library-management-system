@@ -14,7 +14,7 @@ function BookDetail({ bookId, onClose }) {
   const fetchBookDetail = async () => {
     try {
       const response = await axios.get(`http://localhost:3000/api/books/${bookId}`);
-      setBook(response.data);
+      setBook(response.data.data);
     } catch (error) {
       console.error('도서 상세 정보 로드 실패:', error);
     } finally {
