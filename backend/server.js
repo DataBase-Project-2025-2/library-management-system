@@ -15,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 라우트
+const authRoutes = require('./routes/auth');
 const membersRoutes = require('./routes/members');
 const booksRoutes = require('./routes/books');
 const loansRoutes = require('./routes/loans');
@@ -23,6 +24,7 @@ const reviewsRoutes = require('./routes/reviews');
 const statisticsRoutes = require('./routes/statistics');
 const readingRoutes = require('./routes/reading');
 
+app.use('/api/auth', authRoutes);
 app.use('/api/members', membersRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/loans', loansRoutes);
@@ -38,6 +40,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     status: 'running',
     endpoints: {
+      auth: '/api/auth',
       members: '/api/members',
       books: '/api/books',
       loans: '/api/loans',

@@ -49,3 +49,105 @@ router.get('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// 회원별 대출 목록 조회
+router.get('/:id/loans', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT l.*, b.title, b.author, b.publisher 
+       FROM Loans l
+       JOIN Books b ON l.book_id = b.book_id
+       WHERE l.member_id = ?
+       ORDER BY l.loan_date DESC`,
+      [req.params.id]
+    );
+    
+    res.json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    console.error('대출 목록 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '대출 목록 조회 중 오류가 발생했습니다'
+    });
+  }
+});
+
+// 회원별 예약 목록 조회
+router.get('/:id/reservations', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT r.*, b.title, b.author, b.publisher 
+       FROM Reservations r
+       JOIN Books b ON r.book_id = b.book_id
+       WHERE r.member_id = ?
+       ORDER BY r.reservation_date DESC`,
+      [req.params.id]
+    );
+    
+    res.json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    console.error('예약 목록 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '예약 목록 조회 중 오류가 발생했습니다'
+    });
+  }
+});
+
+// 회원별 서평 목록 조회
+router.get('/:id/reviews', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT r.*, b.title, b.author, b.publisher 
+       FROM Reviews r
+       JOIN Books b ON r.book_id = b.book_id
+       WHERE r.member_id = ?
+       ORDER BY r.review_date DESC`,
+      [req.params.id]
+    );
+    
+    res.json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    console.error('서평 목록 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '서평 목록 조회 중 오류가 발생했습니다'
+    });
+  }
+});
+
+// 회원별 독서 목표 조회
+router.get('/:id/goals', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM ReadingGoals 
+       WHERE member_id = ?
+       ORDER BY year DESC`,
+      [req.params.id]
+    );
+    
+    res.json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    console.error('독서 목표 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '독서 목표 조회 중 오류가 발생했습니다'
+    });
+  }
+});
