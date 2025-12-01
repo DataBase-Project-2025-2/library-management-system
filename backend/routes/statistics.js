@@ -351,4 +351,197 @@ router.get('/department-stats', async (req, res) => {
   }
 });
 
+// 신착도서 (최근 등록된 도서)
+router.get('/new-arrivals', async (req, res) => {
+  try {
+    const limit = req.query.limit || 20;
+    
+    const [books] = await db.query(`
+      SELECT 
+        b.*,
+        AVG(r.rating) as average_rating,
+        COUNT(DISTINCT r.review_id) as review_count
+      FROM Books b
+      LEFT JOIN Reviews r ON b.book_id = r.book_id
+      GROUP BY b.book_id
+      ORDER BY b.book_id DESC
+      LIMIT ?
+    `, [parseInt(limit)]);
+    
+    res.json({
+      success: true,
+      count: books.length,
+      data: books.map(book => ({
+        ...book,
+        average_rating: book.average_rating ? parseFloat(book.average_rating).toFixed(1) : null
+      }))
+    });
+    
+  } catch (error) {
+    console.error('신착도서 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '신착도서 조회 중 오류가 발생했습니다'
+    });
+  }
+});
+
+// 개인 독서 통계
+router.get('/my-stats/:memberId', async (req, res) => {
+  try {
+    const { memberId } = req.params;
+    
+    // 1. 총 대출 수
+    const [totalLoans] = await db.query(`
+      SELECT COUNT(*) as total_loans
+      FROM Loans
+      WHERE member_id = ?
+    `, [memberId]);
+    
+    // 2. 이번 달 대출 수
+    const [monthlyLoans] = await db.query(`
+      SELECT COUNT(*) as monthly_loans
+      FROM Loans
+      WHERE member_id = ? 
+      AND MONTH(loan_date) = MONTH(CURRENT_DATE())
+      AND YEAR(loan_date) = YEAR(CURRENT_DATE())
+    `, [memberId]);
+    
+    // 3. 작성한 서평 수
+    const [reviewCount] = await db.query(`
+      SELECT COUNT(*) as review_count
+      FROM Reviews
+      WHERE member_id = ?
+    `, [memberId]);
+    
+    // 4. 카테고리별 대출 통계
+    const [categoryStats] = await db.query(`
+      SELECT 
+        b.category,
+        COUNT(*) as count
+      FROM Loans l
+      JOIN Books b ON l.book_id = b.book_id
+      WHERE l.member_id = ?
+      GROUP BY b.category
+      ORDER BY count DESC
+      LIMIT 5
+    `, [memberId]);
+    
+    // 5. 최근 대출 도서 (3권)
+    const [recentLoans] = await db.query(`
+      SELECT 
+        b.book_id,
+        b.title,
+        b.author,
+        b.category,
+        l.loan_date
+      FROM Loans l
+      JOIN Books b ON l.book_id = b.book_id
+      WHERE l.member_id = ?
+      ORDER BY l.loan_date DESC
+      LIMIT 3
+    `, [memberId]);
+    
+    res.json({
+      success: true,
+      data: {
+        total_loans: totalLoans[0].total_loans,
+        monthly_loans: monthlyLoans[0].monthly_loans,
+        review_count: reviewCount[0].review_count,
+        category_stats: categoryStats,
+        recent_loans: recentLoans
+      }
+    });
+    
+  } catch (error) {
+    console.error('개인 통계 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '통계 조회 중 오류가 발생했습니다'
+    });
+  }
+});
+
+// 개인화 추천 도서
+router.get('/recommended/:memberId', async (req, res) => {
+  try {
+    const { memberId } = req.params;
+    const limit = req.query.limit || 5;
+    
+    // 1. 사용자가 가장 많이 대출한 카테고리 찾기
+    const [topCategories] = await db.query(`
+      SELECT b.category, COUNT(*) as count
+      FROM Loans l
+      JOIN Books b ON l.book_id = b.book_id
+      WHERE l.member_id = ?
+      GROUP BY b.category
+      ORDER BY count DESC
+      LIMIT 3
+    `, [memberId]);
+    
+    if (topCategories.length === 0) {
+      // 대출 이력이 없으면 인기 도서 추천
+      const [popularBooks] = await db.query(`
+        SELECT 
+          b.*,
+          COUNT(l.loan_id) as loan_count,
+          AVG(r.rating) as average_rating
+        FROM Books b
+        LEFT JOIN Loans l ON b.book_id = l.book_id
+        LEFT JOIN Reviews r ON b.book_id = r.book_id
+        WHERE b.available_copies > 0
+        GROUP BY b.book_id
+        ORDER BY loan_count DESC
+        LIMIT ?
+      `, [parseInt(limit)]);
+      
+      return res.json({
+        success: true,
+        recommendation_type: 'popular',
+        data: popularBooks
+      });
+    }
+    
+    // 2. 선호 카테고리의 도서 중 아직 안 읽은 책 추천
+    const categories = topCategories.map(c => c.category);
+    const placeholders = categories.map(() => '?').join(',');
+    
+    const [recommendedBooks] = await db.query(`
+      SELECT 
+        b.*,
+        AVG(r.rating) as average_rating,
+        COUNT(DISTINCT r.review_id) as review_count,
+        COUNT(DISTINCT l.loan_id) as loan_count
+      FROM Books b
+      LEFT JOIN Reviews r ON b.book_id = r.book_id
+      LEFT JOIN Loans l ON b.book_id = l.book_id
+      WHERE b.category IN (${placeholders})
+      AND b.book_id NOT IN (
+        SELECT book_id FROM Loans WHERE member_id = ?
+      )
+      AND b.available_copies > 0
+      GROUP BY b.book_id
+      ORDER BY loan_count DESC, average_rating DESC
+      LIMIT ?
+    `, [...categories, memberId, parseInt(limit)]);
+    
+    res.json({
+      success: true,
+      recommendation_type: 'personalized',
+      favorite_categories: categories,
+      data: recommendedBooks.map(book => ({
+        ...book,
+        average_rating: book.average_rating ? parseFloat(book.average_rating).toFixed(1) : null
+      }))
+    });
+    
+  } catch (error) {
+    console.error('추천 도서 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '추천 도서 조회 중 오류가 발생했습니다'
+    });
+  }
+});
+
 module.exports = router;

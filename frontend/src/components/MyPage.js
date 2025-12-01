@@ -39,6 +39,47 @@ function MyPage() {
       setLoading(false);
     }
   };
+  const handleReturn = async (loanId, bookTitle) => {
+    if (window.confirm(`"${bookTitle}"를 반납하시겠습니까?`)) {
+      try {
+        const response = await axios.post(`http://localhost:3000/api/loans/return/${loanId}`);
+        if (response.data.success) {
+          alert(response.data.message);
+          fetchMyPageData(user.member_id);
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '반납에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleRenew = async (loanId, bookTitle) => {
+    if (window.confirm(`"${bookTitle}"의 대출을 연장하시겠습니까?`)) {
+      try {
+        const response = await axios.post(`http://localhost:3000/api/loans/renew/${loanId}`);
+        if (response.data.success) {
+          alert(`연장 완료! 새로운 반납일: ${new Date(response.data.data.new_due_date).toLocaleDateString()}`);
+          fetchMyPageData(user.member_id);
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '연장에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleCancelReservation = async (reservationId, bookTitle) => {
+    if (window.confirm(`"${bookTitle}"의 예약을 취소하시겠습니까?`)) {
+      try {
+        const response = await axios.delete(`http://localhost:3000/api/reservations/${reservationId}`);
+        if (response.data.success) {
+          alert('예약이 취소되었습니다.');
+          fetchMyPageData(user.member_id);
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '예약 취소에 실패했습니다.');
+      }
+    }
+  };
 
   if (loading) {
     return <div className="loading-container">로딩 중...</div>;
@@ -81,31 +122,31 @@ function MyPage() {
 
       {/* 탭 메뉴 */}
       <div className="mypage-tabs">
-        <button 
+        <button
           className={`tab ${activeTab === 'loans' ? 'active' : ''}`}
           onClick={() => setActiveTab('loans')}
         >
           📚 대출 현황 ({currentLoans.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           📖 대출 이력 ({loanHistory.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'reservations' ? 'active' : ''}`}
           onClick={() => setActiveTab('reservations')}
         >
           📝 예약 ({reservations.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'reviews' ? 'active' : ''}`}
           onClick={() => setActiveTab('reviews')}
         >
           ⭐ 서평 ({reviews.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'goals' ? 'active' : ''}`}
           onClick={() => setActiveTab('goals')}
         >
@@ -117,32 +158,45 @@ function MyPage() {
       <div className="tab-content">
         {/* 대출 현황 */}
         {activeTab === 'loans' && (
-          <div className="content-section">
+          <div className="tab-content">
             <h3>현재 대출 중인 도서</h3>
-            {currentLoans.length === 0 ? (
-              <p className="empty-message">대출 중인 도서가 없습니다.</p>
-            ) : (
-              <div className="items-list">
-                {currentLoans.map(loan => (
-                  <div key={loan.loan_id} className="item-card">
-                    <div className="item-header">
-                      <h4>{loan.title}</h4>
-                      <span className={`status-badge ${loan.status}`}>
-                        {loan.status === 'overdue' ? '연체' : '대출중'}
-                      </span>
-                    </div>
-                    <p className="item-author">저자: {loan.author}</p>
-                    <p className="item-publisher">출판사: {loan.publisher}</p>
-                    <div className="item-dates">
-                      <span>대출일: {new Date(loan.loan_date).toLocaleDateString()}</span>
-                      <span className={loan.status === 'overdue' ? 'overdue-text' : ''}>
-                        반납예정: {new Date(loan.due_date).toLocaleDateString()}
-                      </span>
-                    </div>
+            <div className="items-grid">
+              {currentLoans.map(loan => (
+                <div key={loan.loan_id} className="item-card">
+                  <h4>{loan.title}</h4>
+                  <p className="author">저자: {loan.author}</p>
+                  <p className="publisher">출판사: {loan.publisher}</p>
+                  <div className="item-info">
+                    <span className={`status-badge ${loan.status}`}>
+                      {loan.status === 'borrowed' ? '대출중' : '연체'}
+                    </span>
+                    {loan.renewal_count !== undefined && (
+                      <span className="renewal-info">연장 {loan.renewal_count}/2회</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="item-dates">
+                    <p>대출일: {new Date(loan.loan_date).toLocaleDateString()}</p>
+                    <p>반납예정일: {new Date(loan.due_date).toLocaleDateString()}</p>
+                  </div>
+                  {/* ✨ 버튼 추가 ✨ */}
+                  <div className="item-actions">
+                    <button
+                      className="btn-action primary"
+                      onClick={() => handleReturn(loan.loan_id, loan.title)}
+                    >
+                      반납하기
+                    </button>
+                    <button
+                      className="btn-action secondary"
+                      onClick={() => handleRenew(loan.loan_id, loan.title)}
+                      disabled={loan.renewal_count >= 2}
+                    >
+                      {loan.renewal_count >= 2 ? '연장불가' : '연장하기'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -174,33 +228,29 @@ function MyPage() {
 
         {/* 예약 */}
         {activeTab === 'reservations' && (
-          <div className="content-section">
+          <div className="tab-content">
             <h3>예약 목록</h3>
-            {reservations.length === 0 ? (
-              <p className="empty-message">예약한 도서가 없습니다.</p>
-            ) : (
-              <div className="items-list">
-                {reservations.map(reservation => (
-                  <div key={reservation.reservation_id} className="item-card">
-                    <div className="item-header">
-                      <h4>{reservation.title}</h4>
-                      <span className={`status-badge ${reservation.status}`}>
-                        {reservation.status === 'active' ? '예약중' : 
-                         reservation.status === 'fulfilled' ? '완료' : '취소'}
-                      </span>
-                    </div>
-                    <p className="item-author">저자: {reservation.author}</p>
-                    <div className="item-dates">
-                      <span>예약일: {new Date(reservation.reservation_date).toLocaleDateString()}</span>
-                      <span>만료일: {new Date(reservation.expiry_date).toLocaleDateString()}</span>
-                    </div>
+            <div className="items-grid">
+              {reservations.map(reservation => (
+                <div key={reservation.reservation_id} className="item-card">
+                  <h4>{reservation.title}</h4>
+                  <p className="author">저자: {reservation.author}</p>
+                  <div className="item-info">
+                    <span className={`status-badge ${reservation.status}`}>
+                      {reservation.status === 'active' ? '예약중' :
+                        reservation.status === 'fulfilled' ? '완료' : '취소'}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="item-dates">
+                    <p>예약일: {new Date(reservation.reservation_date).toLocaleDateString()}</p>
+                    <p>만료일: {new Date(reservation.expiry_date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
-
+        
         {/* 서평 */}
         {activeTab === 'reviews' && (
           <div className="content-section">
@@ -247,8 +297,8 @@ function MyPage() {
                         </span>
                       </div>
                       <div className="progress-bar">
-                        <div 
-                          className="progress-fill" 
+                        <div
+                          className="progress-fill"
                           style={{ width: `${Math.min(progress, 100)}%` }}
                         ></div>
                       </div>

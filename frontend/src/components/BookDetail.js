@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import ReviewForm from './ReviewForm';
 import './BookDetail.css';
 
 function BookDetail({ bookId, onClose }) {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
+  const [borrowing, setBorrowing] = useState(false);
+  const [reserving, setReserving] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     fetchBookDetail();
@@ -15,10 +20,79 @@ function BookDetail({ bookId, onClose }) {
     try {
       const response = await axios.get(`http://localhost:3000/api/books/${bookId}`);
       setBook(response.data.data);
+
+      // 서평 조회 추가
+      const reviewsResponse = await axios.get(`http://localhost:3000/api/reviews/book/${bookId}`);
+      setReviews(reviewsResponse.data.data || []);
     } catch (error) {
       console.error('도서 상세 정보 로드 실패:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBorrow = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    if (book.available_copies <= 0) {
+      alert('대출 가능한 도서가 없습니다.');
+      return;
+    }
+
+    if (window.confirm(`"${book.title}"를 대출하시겠습니까?`)) {
+      setBorrowing(true);
+      try {
+        const response = await axios.post('http://localhost:3000/api/loans/borrow', {
+          member_id: user.member_id,
+          book_id: bookId
+        });
+
+        if (response.data.success) {
+          alert(`대출이 완료되었습니다!\n반납 예정일: ${new Date(response.data.data.due_date).toLocaleDateString()}`);
+          fetchBookDetail();
+          onClose();
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '대출에 실패했습니다.');
+      } finally {
+        setBorrowing(false);
+      }
+    }
+  };
+
+  const handleReserve = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    if (book.available_copies > 0) {
+      alert('대출 가능한 도서입니다. 대출을 진행해주세요.');
+      return;
+    }
+
+    if (window.confirm(`"${book.title}"를 예약하시겠습니까?`)) {
+      setReserving(true);
+      try {
+        const response = await axios.post('http://localhost:3000/api/reservations/create', {
+          member_id: user.member_id,
+          book_id: bookId
+        });
+
+        if (response.data.success) {
+          alert(`예약이 완료되었습니다!\n만료일: ${new Date(response.data.data.expiry_date).toLocaleDateString()}`);
+          onClose();
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '예약에 실패했습니다.');
+      } finally {
+        setReserving(false);
+      }
     }
   };
 
@@ -47,7 +121,7 @@ function BookDetail({ bookId, onClose }) {
     <div className="book-detail-overlay" onClick={onClose}>
       <div className="book-detail-container" onClick={e => e.stopPropagation()}>
         <button className="close-btn-top" onClick={onClose}>✕</button>
-        
+
         <div className="book-detail-content">
           {/* 왼쪽: 도서 표지 */}
           <div className="book-cover-section">
@@ -59,7 +133,7 @@ function BookDetail({ bookId, onClose }) {
           {/* 중앙: 도서 정보 */}
           <div className="book-info-section">
             <h2 className="book-title">{book.title}</h2>
-            
+
             <table className="book-info-table">
               <tbody>
                 <tr>
@@ -72,7 +146,7 @@ function BookDetail({ bookId, onClose }) {
                 </tr>
                 <tr>
                   <th>발행사항</th>
-                  <td>{book.publisher}, {book.publication_year}</td>
+                  <td>{book.publisher}, {book.publish_date ? new Date(book.publish_date).getFullYear() : 'N/A'}</td>
                 </tr>
                 <tr>
                   <th>ISBN</th>
@@ -87,13 +161,13 @@ function BookDetail({ bookId, onClose }) {
 
             {/* 탭 메뉴 */}
             <div className="tabs">
-              <button 
+              <button
                 className={`tab ${activeTab === 'info' ? 'active' : ''}`}
                 onClick={() => setActiveTab('info')}
               >
                 소장정보
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'reviews' ? 'active' : ''}`}
                 onClick={() => setActiveTab('reviews')}
               >
@@ -117,9 +191,13 @@ function BookDetail({ bookId, onClose }) {
                   <tbody>
                     <tr>
                       <td>3011224020</td>
-                      <td>1층·신간자료실</td>
+                      <td>{book.location || '1층·신간자료실'}</td>
                       <td>811.87 문94호</td>
-                      <td><span className="status available">대출가능</span></td>
+                      <td>
+                        <span className={`status ${book.available_copies > 0 ? 'available' : 'unavailable'}`}>
+                          {book.available_copies > 0 ? '대출가능' : '대출중'}
+                        </span>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -129,8 +207,39 @@ function BookDetail({ bookId, onClose }) {
             {activeTab === 'reviews' && (
               <div className="tab-content">
                 <div className="reviews-section">
-                  <p>서평이 없습니다.</p>
-                  <button className="write-review-btn">서평 작성하기</button>
+                  <div className="reviews-header">
+                    <h3>서평 ({reviews.length})</h3>
+                    <button
+                      className="write-review-btn"
+                      onClick={() => setShowReviewForm(true)}
+                    >
+                      ✍️ 서평 작성하기
+                    </button>
+                  </div>
+
+                  {reviews.length === 0 ? (
+                    <p className="no-reviews">아직 작성된 서평이 없습니다.</p>
+                  ) : (
+                    <div className="reviews-list">
+                      {reviews.map(review => (
+                        <div key={review.review_id} className="review-card">
+                          <div className="review-header">
+                            <div className="reviewer-info">
+                              <strong>{review.member_name}</strong>
+                              <span className="review-dept">{review.department}</span>
+                            </div>
+                            <div className="review-rating">
+                              {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                            </div>
+                          </div>
+                          <p className="review-comment">{review.comment}</p>
+                          <span className="review-date">
+                            {new Date(review.review_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -170,11 +279,32 @@ function BookDetail({ bookId, onClose }) {
 
         {/* 하단 버튼 */}
         <div className="book-actions">
-          <button className="action-btn primary">대출하기</button>
-          <button className="action-btn secondary">예약하기</button>
-          <button className="action-btn secondary">내 서재에 담기</button>
+          <button
+            className="action-btn primary"
+            onClick={handleBorrow}
+            disabled={borrowing || book.available_copies <= 0}
+          >
+            {borrowing ? '대출 중...' : book.available_copies <= 0 ? '대출 불가' : '대출하기'}
+          </button>
+          <button
+            className="action-btn secondary"
+            onClick={handleReserve}
+            disabled={reserving || book.available_copies > 0}
+          >
+            {reserving ? '예약 중...' : '예약하기'}
+          </button>
         </div>
       </div>
+
+      {/* 서평 작성 모달 ✨ 추가 ✨ */}
+      {showReviewForm && (
+        <ReviewForm
+          bookId={bookId}
+          bookTitle={book.title}
+          onClose={() => setShowReviewForm(false)}
+          onSubmit={fetchBookDetail}
+        />
+      )}
     </div>
   );
 }

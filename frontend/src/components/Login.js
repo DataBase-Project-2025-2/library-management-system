@@ -91,9 +91,9 @@ function Login({ onLoginSuccess }) {
           </button>
 
           <div className="login-info">
-            <p className="info-text">💡 데모용 계정 정보</p>
-            <p className="info-detail">학번: 202493433 (김민준)</p>
-            <p className="info-detail">비밀번호: 1234</p>
+            <p className="info-text">📜 데모용 계정 정보</p>
+            <p className="info-detail">👤 일반 사용자: 202493433 / 1234</p>
+            <p className="info-detail">🔑 관리자: admin / rhksflwk0810</p>
           </div>
         </form>
       </div>

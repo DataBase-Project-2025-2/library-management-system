@@ -5,6 +5,8 @@ import Home from './components/Home';
 import Login from './components/Login';
 import MyPage from './components/MyPage';
 import './App.css';
+import PopularBooks from './components/PopularBooks';
+import NewArrivals from './components/NewArrivals';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -46,31 +48,33 @@ function App() {
             <h2 className="nav-title">아주대학교 | 중앙도서관</h2>
           </div>
           <div className="nav-links">
-            <button 
+            <button
               className={`nav-btn ${currentPage === 'home' ? 'active' : ''}`}
               onClick={() => setCurrentPage('home')}
             >
               🏠 홈
             </button>
-            <button 
+            <button
               className={`nav-btn ${currentPage === 'books' ? 'active' : ''}`}
               onClick={() => setCurrentPage('books')}
             >
               📚 자료검색
             </button>
-            <button 
+            <button
               className={`nav-btn ${currentPage === 'dashboard' ? 'active' : ''}`}
               onClick={() => setCurrentPage('dashboard')}
+              style={{ display: user.isAdmin ? 'block' : 'none' }}
             >
               ⚙️ 관리자
             </button>
-            <button 
+            <button
               className={`nav-btn ${currentPage === 'mypage' ? 'active' : ''}`}
               onClick={() => setCurrentPage('mypage')}
+              style={{ display: user.isAdmin ? 'none' : 'block' }}
             >
               👤 마이페이지
             </button>
-            <button 
+            <button
               className="nav-btn logout-btn"
               onClick={handleLogout}
             >
@@ -84,8 +88,10 @@ function App() {
       <main className="main-content">
         {currentPage === 'home' && <Home onNavigate={setCurrentPage} />}
         {currentPage === 'books' && <BookList />}
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'mypage' && <MyPage />}
+        {currentPage === 'newarrivals' && <NewArrivals />} {/* ✨ 추가 ✨ */}
+        {currentPage === 'dashboard' && user.isAdmin && <Dashboard />}
+        {currentPage === 'mypage' && !user.isAdmin && <MyPage />}
+        {currentPage === 'popular' && <PopularBooks />}
       </main>
     </div>
   );

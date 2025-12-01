@@ -267,3 +267,95 @@
     flex-wrap: wrap;
   }
 }
+
+/* 서평 섹션 */
+.reviews-section {
+  padding: 20px 0;
+}
+
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.reviews-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.write-review-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.write-review-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.no-reviews {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviewer-info strong {
+  color: #333;
+  font-size: 14px;
+}
+
+.review-dept {
+  color: #666;
+  font-size: 12px;
+}
+
+.review-rating {
+  color: #ffd700;
+  font-size: 16px;
+}
+
+.review-comment {
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.review-date {
+  color: #999;
+  font-size: 12px;
+}

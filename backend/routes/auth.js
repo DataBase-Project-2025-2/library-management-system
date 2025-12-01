@@ -21,20 +21,34 @@ router.post('/login', async (req, res) => {
 
     const member = members[0];
 
-    if (password !== '1234') {
-      return res.status(401).json({ 
-        success: false, 
-        message: '학번 또는 비밀번호가 올바르지 않습니다.' 
-      });
+    // 관리자 계정 확인
+    if (student_id === 'admin') {
+      if (password !== 'rhksflwk0810') {
+        return res.status(401).json({ 
+          success: false, 
+          message: '학번 또는 비밀번호가 올바르지 않습니다.' 
+        });
+      }
+    } else {
+      // 일반 사용자 비밀번호: 1234
+      if (password !== '1234') {
+        return res.status(401).json({ 
+          success: false, 
+          message: '학번 또는 비밀번호가 올바르지 않습니다.' 
+        });
+      }
     }
 
     delete member.password_hash;
+
+    // 관리자 여부 추가
+    const isAdmin = student_id === 'admin';
 
     res.json({
       success: true,
       message: '로그인 성공',
       data: {
-        member,
+        member: { ...member, isAdmin },
         token: `temp_token_${member.member_id}`
       }
     });

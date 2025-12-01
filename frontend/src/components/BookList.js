@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { bookAPI } from '../api';
 import BookDetail from './BookDetail';
 import './BookList.css';
@@ -10,9 +11,24 @@ function BookList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedBookId, setSelectedBookId] = useState(null);
+  const [borrowing, setBorrowing] = useState(null);
+  const [reserving, setReserving] = useState(null);
 
   useEffect(() => {
-    fetchBooks();
+    // localStorage에서 검색어 가져오기
+    const savedQuery = localStorage.getItem('searchQuery');
+    console.log('📌 저장된 검색어:', savedQuery);
+    
+    if (savedQuery) {
+      setSearchKeyword(savedQuery);
+      localStorage.removeItem('searchQuery');
+      console.log('🔍 검색 자동 실행:', savedQuery);
+      // 검색 자동 실행
+      performSearch(savedQuery);
+    } else {
+      // 검색어 없으면 전체 목록 로드
+      fetchBooks();
+    }
   }, []);
 
   const fetchBooks = async () => {
@@ -29,38 +45,98 @@ function BookList() {
     }
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchKeyword.trim()) {
-      fetchBooks();
+  const handleBorrow = async (book) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('로그인이 필요합니다.');
       return;
     }
 
+    if (window.confirm(`"${book.title}"를 대출하시겠습니까?`)) {
+      setBorrowing(book.book_id);
+      try {
+        const response = await axios.post('http://localhost:3000/api/loans/borrow', {
+          member_id: user.member_id,
+          book_id: book.book_id
+        });
+
+        if (response.data.success) {
+          alert(`대출이 완료되었습니다!\n반납 예정일: ${new Date(response.data.data.due_date).toLocaleDateString()}`);
+          fetchBooks();
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '대출에 실패했습니다.');
+      } finally {
+        setBorrowing(null);
+      }
+    }
+  };
+
+  const handleReserve = async (book) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    if (window.confirm(`"${book.title}"를 예약하시겠습니까?`)) {
+      setReserving(book.book_id);
+      try {
+        const response = await axios.post('http://localhost:3000/api/reservations/create', {
+          member_id: user.member_id,
+          book_id: book.book_id
+        });
+
+        if (response.data.success) {
+          alert(`예약이 완료되었습니다!\n만료일: ${new Date(response.data.data.expiry_date).toLocaleDateString()}`);
+          fetchBooks();
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || '예약에 실패했습니다.');
+      } finally {
+        setReserving(null);
+      }
+    }
+  };
+
+  const performSearch = async (query) => {
+    console.log('🔍 performSearch 호출됨, 검색어:', query);
     try {
       setLoading(true);
-      const response = await bookAPI.search(searchKeyword);
+      console.log('📡 API 호출 중:', `/books/search/${query}`);
+      const response = await bookAPI.search(query);
+      console.log('✅ API 응답:', response.data);
       setBooks(response.data.data);
       setError(null);
     } catch (err) {
-      console.error('검색 오류:', err);
+      console.error('❌ 검색 오류:', err);
       setError('검색 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
-  const categories = ['all', ...new Set(books.map(book => book.category))];
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchKeyword.trim()) {
+      fetchBooks();
+      return;
+    }
+    performSearch(searchKeyword);
+  };
+
+  const categories = ['all', '프로그래밍', 'AI', '데이터베이스', '보안', '소프트웨어공학', '네트워크', '인프라', 'DevOps', '클라우드', '컨테이너', '아키텍처'];
 
   const filteredBooks = selectedCategory === 'all' 
     ? books 
     : books.filter(book => book.category === selectedCategory);
 
-  if (loading) {
-    return <div className="loading">로딩 중...</div>;
+  if (loading && books.length === 0) {
+    return <div className="loading-container">로딩 중...</div>;
   }
 
   if (error) {
-    return <div className="error">{error}</div>;
+    return <div className="error-container">{error}</div>;
   }
 
   return (
@@ -127,12 +203,23 @@ function BookList() {
               </div>
 
               <div className="book-actions">
-                <button 
-                  className="btn-primary"
-                  disabled={book.available_copies === 0}
-                >
-                  {book.available_copies > 0 ? '📖 대출하기' : '📝 예약하기'}
-                </button>
+                {book.available_copies > 0 ? (
+                  <button 
+                    className="btn-primary"
+                    disabled={borrowing === book.book_id}
+                    onClick={() => handleBorrow(book)}
+                  >
+                    {borrowing === book.book_id ? '대출 중...' : '📖 대출하기'}
+                  </button>
+                ) : (
+                  <button 
+                    className="btn-primary"
+                    disabled={reserving === book.book_id}
+                    onClick={() => handleReserve(book)}
+                  >
+                    {reserving === book.book_id ? '예약 중...' : '📝 예약하기'}
+                  </button>
+                )}
                 <button 
                   className="btn-secondary"
                   onClick={() => setSelectedBookId(book.book_id)}
