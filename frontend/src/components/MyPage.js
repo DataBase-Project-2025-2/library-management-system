@@ -7,7 +7,8 @@ function MyPage() {
   const [loans, setLoans] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [goals, setGoals] = useState([]);
+  const [readingGoal, setReadingGoal] = useState(null);
+  const [targetBooks, setTargetBooks] = useState('');
   const [activeTab, setActiveTab] = useState('loans');
   const [loading, setLoading] = useState(true);
 
@@ -22,23 +23,61 @@ function MyPage() {
 
   const fetchMyPageData = async (memberId) => {
     try {
-      const [loansRes, reservationsRes, reviewsRes, goalsRes] = await Promise.all([
+      const [loansRes, reservationsRes, reviewsRes] = await Promise.all([
         axios.get(`http://localhost:3000/api/members/${memberId}/loans`),
         axios.get(`http://localhost:3000/api/members/${memberId}/reservations`),
-        axios.get(`http://localhost:3000/api/members/${memberId}/reviews`),
-        axios.get(`http://localhost:3000/api/members/${memberId}/goals`)
+        axios.get(`http://localhost:3000/api/members/${memberId}/reviews`)
       ]);
 
       setLoans(loansRes.data.data || []);
       setReservations(reservationsRes.data.data || []);
       setReviews(reviewsRes.data.data || []);
-      setGoals(goalsRes.data.data || []);
+      
+      // 독서 목표 별도 조회
+      fetchReadingGoal(memberId);
     } catch (error) {
       console.error('마이페이지 데이터 로드 실패:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchReadingGoal = async (memberId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/reading-goals/my-goal/${memberId}`);
+      setReadingGoal(response.data.data);
+      if (response.data.data.has_goal) {
+        setTargetBooks(response.data.data.target_books.toString());
+      }
+    } catch (error) {
+      console.error('독서 목표 조회 실패:', error);
+    }
+  };
+
+  const handleSetGoal = async (e) => {
+    e.preventDefault();
+    
+    const target = parseInt(targetBooks);
+    if (!target || target < 1 || target > 1000) {
+      alert('목표 권수는 1~1000 사이로 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/reading-goals/set-goal', {
+        member_id: user.member_id,
+        target_books: target
+      });
+
+      if (response.data.success) {
+        alert(response.data.message);
+        fetchReadingGoal(user.member_id);
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || '목표 설정에 실패했습니다.');
+    }
+  };
+
   const handleReturn = async (loanId, bookTitle) => {
     if (window.confirm(`"${bookTitle}"를 반납하시겠습니까?`)) {
       try {
@@ -150,7 +189,7 @@ function MyPage() {
           className={`tab ${activeTab === 'goals' ? 'active' : ''}`}
           onClick={() => setActiveTab('goals')}
         >
-          🎯 독서 목표 ({goals.length})
+          🎯 독서 목표
         </button>
       </div>
 
@@ -160,43 +199,46 @@ function MyPage() {
         {activeTab === 'loans' && (
           <div className="tab-content">
             <h3>현재 대출 중인 도서</h3>
-            <div className="items-grid">
-              {currentLoans.map(loan => (
-                <div key={loan.loan_id} className="item-card">
-                  <h4>{loan.title}</h4>
-                  <p className="author">저자: {loan.author}</p>
-                  <p className="publisher">출판사: {loan.publisher}</p>
-                  <div className="item-info">
-                    <span className={`status-badge ${loan.status}`}>
-                      {loan.status === 'borrowed' ? '대출중' : '연체'}
-                    </span>
-                    {loan.renewal_count !== undefined && (
-                      <span className="renewal-info">연장 {loan.renewal_count}/2회</span>
-                    )}
+            {currentLoans.length === 0 ? (
+              <p className="empty-message">현재 대출 중인 도서가 없습니다.</p>
+            ) : (
+              <div className="items-grid">
+                {currentLoans.map(loan => (
+                  <div key={loan.loan_id} className="item-card">
+                    <h4>{loan.title}</h4>
+                    <p className="author">저자: {loan.author}</p>
+                    <p className="publisher">출판사: {loan.publisher}</p>
+                    <div className="item-info">
+                      <span className={`status-badge ${loan.status}`}>
+                        {loan.status === 'borrowed' ? '대출중' : '연체'}
+                      </span>
+                      {loan.renewal_count !== undefined && (
+                        <span className="renewal-info">연장 {loan.renewal_count}/2회</span>
+                      )}
+                    </div>
+                    <div className="item-dates">
+                      <p>대출일: {new Date(loan.loan_date).toLocaleDateString()}</p>
+                      <p>반납예정일: {new Date(loan.due_date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="item-actions">
+                      <button
+                        className="btn-action primary"
+                        onClick={() => handleReturn(loan.loan_id, loan.title)}
+                      >
+                        반납하기
+                      </button>
+                      <button
+                        className="btn-action secondary"
+                        onClick={() => handleRenew(loan.loan_id, loan.title)}
+                        disabled={loan.renewal_count >= 2}
+                      >
+                        {loan.renewal_count >= 2 ? '연장불가' : '연장하기'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="item-dates">
-                    <p>대출일: {new Date(loan.loan_date).toLocaleDateString()}</p>
-                    <p>반납예정일: {new Date(loan.due_date).toLocaleDateString()}</p>
-                  </div>
-                  {/* ✨ 버튼 추가 ✨ */}
-                  <div className="item-actions">
-                    <button
-                      className="btn-action primary"
-                      onClick={() => handleReturn(loan.loan_id, loan.title)}
-                    >
-                      반납하기
-                    </button>
-                    <button
-                      className="btn-action secondary"
-                      onClick={() => handleRenew(loan.loan_id, loan.title)}
-                      disabled={loan.renewal_count >= 2}
-                    >
-                      {loan.renewal_count >= 2 ? '연장불가' : '연장하기'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -230,24 +272,38 @@ function MyPage() {
         {activeTab === 'reservations' && (
           <div className="tab-content">
             <h3>예약 목록</h3>
-            <div className="items-grid">
-              {reservations.map(reservation => (
-                <div key={reservation.reservation_id} className="item-card">
-                  <h4>{reservation.title}</h4>
-                  <p className="author">저자: {reservation.author}</p>
-                  <div className="item-info">
-                    <span className={`status-badge ${reservation.status}`}>
-                      {reservation.status === 'active' ? '예약중' :
-                        reservation.status === 'fulfilled' ? '완료' : '취소'}
-                    </span>
+            {reservations.length === 0 ? (
+              <p className="empty-message">예약 내역이 없습니다.</p>
+            ) : (
+              <div className="items-grid">
+                {reservations.map(reservation => (
+                  <div key={reservation.reservation_id} className="item-card">
+                    <h4>{reservation.title}</h4>
+                    <p className="author">저자: {reservation.author}</p>
+                    <div className="item-info">
+                      <span className={`status-badge ${reservation.status}`}>
+                        {reservation.status === 'active' ? '예약중' :
+                          reservation.status === 'fulfilled' ? '완료' : '취소'}
+                      </span>
+                    </div>
+                    <div className="item-dates">
+                      <p>예약일: {new Date(reservation.reservation_date).toLocaleDateString()}</p>
+                      <p>만료일: {new Date(reservation.expiry_date).toLocaleDateString()}</p>
+                    </div>
+                    {reservation.status === 'active' && (
+                      <div className="item-actions">
+                        <button
+                          className="btn-action danger"
+                          onClick={() => handleCancelReservation(reservation.reservation_id, reservation.title)}
+                        >
+                          예약 취소
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="item-dates">
-                    <p>예약일: {new Date(reservation.reservation_date).toLocaleDateString()}</p>
-                    <p>만료일: {new Date(reservation.expiry_date).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         
@@ -281,33 +337,74 @@ function MyPage() {
         {/* 독서 목표 */}
         {activeTab === 'goals' && (
           <div className="content-section">
-            <h3>독서 목표</h3>
-            {goals.length === 0 ? (
-              <p className="empty-message">설정된 독서 목표가 없습니다.</p>
-            ) : (
-              <div className="goals-list">
-                {goals.map(goal => {
-                  const progress = (goal.current_books / goal.target_books) * 100;
-                  return (
-                    <div key={goal.goal_id} className="goal-card">
-                      <div className="goal-header">
-                        <h4>{goal.year}년 독서 목표</h4>
-                        <span className="goal-numbers">
-                          {goal.current_books} / {goal.target_books}권
-                        </span>
+            <h3>🎯 {new Date().getFullYear()}년 독서 목표</h3>
+            
+            {readingGoal && (
+              <div className="goal-section">
+                {readingGoal.has_goal ? (
+                  <div className="goal-display">
+                    <div className="goal-stats">
+                      <div className="goal-stat-item">
+                        <div className="goal-stat-value">{readingGoal.books_read}</div>
+                        <div className="goal-stat-label">읽은 책</div>
                       </div>
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${Math.min(progress, 100)}%` }}
-                        ></div>
+                      <div className="goal-stat-divider">/</div>
+                      <div className="goal-stat-item">
+                        <div className="goal-stat-value">{readingGoal.target_books}</div>
+                        <div className="goal-stat-label">목표</div>
                       </div>
-                      <p className="progress-text">
-                        {progress.toFixed(0)}% 달성
-                      </p>
                     </div>
-                  );
-                })}
+
+                    <div className="progress-bar-container">
+                      <div 
+                        className="progress-bar-fill"
+                        style={{ width: `${readingGoal.progress}%` }}
+                      >
+                        <span className="progress-text">{readingGoal.progress}%</span>
+                      </div>
+                    </div>
+
+                    <p className="goal-message">
+                      {readingGoal.progress >= 100 ? (
+                        <span className="success">🎉 목표를 달성했습니다!</span>
+                      ) : readingGoal.progress >= 75 ? (
+                        <span>조금만 더 힘내세요! 목표 달성이 얼마 남지 않았습니다.</span>
+                      ) : readingGoal.progress >= 50 ? (
+                        <span>절반을 넘겼어요! 잘하고 있습니다.</span>
+                      ) : readingGoal.progress >= 25 ? (
+                        <span>좋은 시작입니다! 꾸준히 읽어보세요.</span>
+                      ) : (
+                        <span>새로운 책을 읽어보세요!</span>
+                      )}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="empty-message">아직 독서 목표가 설정되지 않았습니다.</p>
+                )}
+
+                <div className="goal-form">
+                  <h4>목표 {readingGoal.has_goal ? '수정' : '설정'}하기</h4>
+                  <form onSubmit={handleSetGoal}>
+                    <div className="form-group">
+                      <label>{new Date().getFullYear()}년에 읽을 책 권수</label>
+                      <div className="input-with-button">
+                        <input
+                          type="number"
+                          min="1"
+                          max="1000"
+                          value={targetBooks}
+                          onChange={(e) => setTargetBooks(e.target.value)}
+                          placeholder="예: 12"
+                          required
+                        />
+                        <span className="input-unit">권</span>
+                      </div>
+                    </div>
+                    <button type="submit" className="btn-submit-goal">
+                      {readingGoal.has_goal ? '목표 수정' : '목표 설정'}
+                    </button>
+                  </form>
+                </div>
               </div>
             )}
           </div>
