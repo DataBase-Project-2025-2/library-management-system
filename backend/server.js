@@ -25,6 +25,8 @@ const statisticsRoutes = require('./routes/statistics');
 const readingRoutes = require('./routes/reading');
 const readingGoalsRoutes = require('./routes/reading-goals');
 const seatsRoutes = require('./routes/seats'); 
+const readingNotesRoutes = require('./routes/reading-notes');
+const likesRoutes = require('./routes/likes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/members', membersRoutes);
@@ -36,6 +38,8 @@ app.use('/api/statistics', statisticsRoutes);
 app.use('/api/reading', readingRoutes);
 app.use('/api/reading-goals', readingGoalsRoutes);
 app.use('/api/seats', seatsRoutes); 
+app.use('/api/reading-notes', readingNotesRoutes);
+app.use('/api/likes', likesRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {

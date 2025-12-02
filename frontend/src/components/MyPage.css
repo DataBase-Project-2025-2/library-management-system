@@ -510,3 +510,103 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
+
+/* 독서노트 카드 */
+.note-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #fff 100%);
+  border-left: 4px solid #f093fb;
+}
+
+.note-author {
+  color: #666;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.note-page {
+  color: #10b981;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+.note-content,
+.note-quote {
+  margin: 20px 0;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.note-content h5,
+.note-quote h5 {
+  margin: 0 0 12px 0;
+  color: #667eea;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.note-text {
+  color: #374151;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-quote blockquote {
+  margin: 0;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-left: 3px solid #f093fb;
+  font-style: italic;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.note-date {
+  color: #9ca3af;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+/* 필기 푸터 */
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.note-footer .note-date {
+  margin: 0;
+}
+
+.btn-view-book {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view-book:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 상세보기 버튼 */
+.btn-action.view {
+  background: #10b981;
+  color: white;
+}
+
+.btn-action.view:hover {
+  background: #059669;
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ReviewForm from './ReviewForm';
+import ReadingNoteForm from './ReadingNoteForm';
 import './BookDetail.css';
 
 function BookDetail({ bookId, onClose }) {
@@ -11,9 +12,17 @@ function BookDetail({ bookId, onClose }) {
   const [reserving, setReserving] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [hasNote, setHasNote] = useState(false);
+  const [existingNote, setExistingNote] = useState(null);
+  const [likeData, setLikeData] = useState({ total_likes: 0, is_liked: false });
+  const [loanStats, setLoanStats] = useState([]);
+  const [statsTab, setStatsTab] = useState('loan');
 
   useEffect(() => {
     fetchBookDetail();
+    fetchLikeData();
+    fetchLoanStats();
   }, [bookId]);
 
   const fetchBookDetail = async () => {
@@ -24,6 +33,12 @@ function BookDetail({ bookId, onClose }) {
       // 서평 조회 추가
       const reviewsResponse = await axios.get(`http://localhost:3000/api/reviews/book/${bookId}`);
       setReviews(reviewsResponse.data.data || []);
+
+      // 독서노트 확인
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        checkUserNote(user.member_id, bookId);
+      }
     } catch (error) {
       console.error('도서 상세 정보 로드 실패:', error);
     } finally {
@@ -93,6 +108,88 @@ function BookDetail({ bookId, onClose }) {
       } finally {
         setReserving(false);
       }
+    }
+  };
+
+  // 독서노트 확인
+  const checkUserNote = async (memberId, bookId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/reading-notes/check/${memberId}/${bookId}`);
+      if (response.data.success && response.data.data.has_note) {
+        setHasNote(true);
+        // 기존 노트 데이터 가져오기
+        const noteResponse = await axios.get(`http://localhost:3000/api/reading-notes/member/${memberId}`);
+        const userNote = noteResponse.data.data.find(note => note.book_id === parseInt(bookId));
+        // summary를 content로 변환
+        if (userNote && userNote.summary) {
+          userNote.content = userNote.summary;
+        }
+        setExistingNote(userNote);
+      } else {
+        setHasNote(false);
+        setExistingNote(null);
+      }
+    } catch (error) {
+      console.error('독서노트 확인 오류:', error);
+    }
+  };
+
+  // 독서노트 버튼 클릭
+  const handleNoteClick = () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    setShowNoteForm(true);
+  };
+
+  // 좋아요 데이터 가져오기
+  const fetchLikeData = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const memberId = user ? user.member_id : '';
+      const response = await axios.get(`http://localhost:3000/api/likes/book/${bookId}?memberId=${memberId}`);
+      if (response.data.success) {
+        setLikeData(response.data.data);
+      }
+    } catch (error) {
+      console.error('좋아요 데이터 조회 실패:', error);
+    }
+  };
+
+  // 대출 통계 가져오기
+  const fetchLoanStats = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/likes/loan-stats/${bookId}`);
+      if (response.data.success) {
+        setLoanStats(response.data.data);
+      }
+    } catch (error) {
+      console.error('대출 통계 조회 실패:', error);
+    }
+  };
+
+  // 좋아요 토글
+  const handleLikeToggle = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/likes/toggle', {
+        member_id: user.member_id,
+        book_id: bookId
+      });
+
+      if (response.data.success) {
+        fetchLikeData(); // 좋아요 데이터 새로고침
+      }
+    } catch (error) {
+      console.error('좋아요 처리 실패:', error);
+      alert('좋아요 처리 중 오류가 발생했습니다.');
     }
   };
 
@@ -248,23 +345,53 @@ function BookDetail({ bookId, onClose }) {
           {/* 오른쪽: 통계 & 관련 도서 */}
           <div className="book-side-section">
             <div className="like-section">
-              <div className="like-count">0명이 좋아합니다</div>
-              <button className="like-btn">
-                👍 좋아요 <span>0</span>
+              <div className="like-count">{likeData.total_likes}명이 좋아합니다</div>
+              <button 
+                className={`like-btn ${likeData.is_liked ? 'liked' : ''}`}
+                onClick={handleLikeToggle}
+              >
+                {likeData.is_liked ? '❤️' : '🤍'} 좋아요 <span>{likeData.total_likes}</span>
               </button>
             </div>
 
             <div className="stats-section">
               <h3>이용통계</h3>
               <div className="stats-tabs">
-                <button className="stat-tab active">조회</button>
-                <button className="stat-tab">대출</button>
+                <button 
+                  className={`stat-tab ${statsTab === 'loan' ? 'active' : ''}`}
+                  onClick={() => setStatsTab('loan')}
+                >
+                  대출
+                </button>
               </div>
               <div className="stats-chart">
-                <div className="chart-placeholder">
-                  📊 대출 통계 그래프
-                </div>
-                <p className="stats-note">최근 3년간 통계 (매월 갱신)</p>
+                {loanStats.length > 0 ? (
+                  <div className="chart-bars">
+                    {loanStats.slice(-6).map((stat, index) => {
+                      const maxCount = Math.max(...loanStats.map(s => s.loan_count));
+                      const height = (stat.loan_count / maxCount) * 100;
+                      return (
+                        <div key={index} className="chart-bar-item">
+                          <div className="bar-wrapper">
+                            <div 
+                              className="bar" 
+                              style={{height: `${height}%`}}
+                              title={`${stat.loan_count}번 대출`}
+                            >
+                              <span className="bar-value">{stat.loan_count}</span>
+                            </div>
+                          </div>
+                          <div className="bar-label">{stat.month.slice(-2)}월</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="chart-placeholder">
+                    📊 대출 통계 데이터가 없습니다
+                  </div>
+                )}
+                <p className="stats-note">최근 6개월간 통계</p>
               </div>
             </div>
 
@@ -293,6 +420,12 @@ function BookDetail({ bookId, onClose }) {
           >
             {reserving ? '예약 중...' : '예약하기'}
           </button>
+          <button
+            className="action-btn note"
+            onClick={handleNoteClick}
+          >
+            📝 {hasNote ? '필기 수정' : '필기 작성'}
+          </button>
         </div>
       </div>
 
@@ -303,6 +436,25 @@ function BookDetail({ bookId, onClose }) {
           bookTitle={book.title}
           onClose={() => setShowReviewForm(false)}
           onSubmit={fetchBookDetail}
+        />
+      )}
+
+      {/* 독서노트 작성 모달 */}
+      {showNoteForm && (
+        <ReadingNoteForm
+          bookInfo={{
+            book_id: book.book_id,
+            title: book.title,
+            author: book.author
+          }}
+          memberId={JSON.parse(localStorage.getItem('user')).member_id}
+          onClose={() => setShowNoteForm(false)}
+          onSuccess={() => {
+            fetchBookDetail();
+            const user = JSON.parse(localStorage.getItem('user'));
+            checkUserNote(user.member_id, bookId);
+          }}
+          existingNote={existingNote}
         />
       )}
     </div>

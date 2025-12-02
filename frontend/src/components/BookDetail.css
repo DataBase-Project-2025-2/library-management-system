@@ -1,3 +1,102 @@
+/* 서평 섹션 */
+.reviews-section {
+  padding: 20px 0;
+}
+
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.reviews-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.write-review-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.write-review-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.no-reviews {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.review-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reviewer-info strong {
+  font-size: 15px;
+  color: #333;
+}
+
+.review-dept {
+  font-size: 13px;
+  color: #666;
+  background: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.review-rating {
+  color: #ffc107;
+  font-size: 16px;
+}
+
+.review-comment {
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 10px 0;
+}
+
+.review-date {
+  font-size: 12px;
+  color: #999;
+}
+
 /* 오버레이 */
 .book-detail-overlay {
   position: fixed;
@@ -201,33 +300,9 @@
   color: #155724;
 }
 
-.status.loaned {
+.status.unavailable {
   background: #fff3cd;
   color: #856404;
-}
-
-/* 서평 섹션 */
-.reviews-section {
-  text-align: center;
-  padding: 40px 0;
-}
-
-.write-review-btn {
-  margin-top: 20px;
-  padding: 12px 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.write-review-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
 /* 오른쪽: 사이드 섹션 */
@@ -249,6 +324,7 @@
   font-size: 14px;
   color: #666;
   margin-bottom: 15px;
+  font-weight: 500;
 }
 
 .like-btn {
@@ -262,12 +338,28 @@
   color: #667eea;
   cursor: pointer;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .like-btn:hover {
   background: #667eea;
   color: white;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.like-btn.liked {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border-color: #f5576c;
+}
+
+.like-btn.liked:hover {
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+  box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
 }
 
 /* 통계 섹션 */
@@ -297,8 +389,15 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  color: #666;
+}
+
+.stat-tab:hover {
+  border-color: #667eea;
+  color: #667eea;
 }
 
 .stat-tab.active {
@@ -307,13 +406,77 @@
   border-color: #667eea;
 }
 
+/* 차트 */
+.stats-chart {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 180px;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.chart-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-wrapper {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px 8px 0 0;
+  min-height: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 5px;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.bar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.bar-value {
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
 .chart-placeholder {
   background: white;
   padding: 60px 20px;
   border-radius: 12px;
   text-align: center;
   color: #999;
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .stats-note {
@@ -341,6 +504,7 @@
   text-align: center;
   color: #999;
   padding: 20px;
+  font-size: 14px;
 }
 
 /* 하단 버튼 */
@@ -367,9 +531,14 @@
   color: white;
 }
 
-.action-btn.primary:hover {
+.action-btn.primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .action-btn.secondary {
@@ -378,8 +547,23 @@
   color: #667eea;
 }
 
-.action-btn.secondary:hover {
+.action-btn.secondary:hover:not(:disabled) {
   background: #f8f9fa;
+}
+
+.action-btn.secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-btn.note {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.action-btn.note:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
 }
 
 /* 로딩 & 에러 */
@@ -417,5 +601,13 @@
 
   .book-actions {
     flex-direction: column;
+  }
+
+  .chart-bars {
+    height: 120px;
+  }
+
+  .bar-wrapper {
+    height: 100px;
   }
 }

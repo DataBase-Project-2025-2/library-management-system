@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import BookDetail from './BookDetail';
+import ReadingNoteForm from './ReadingNoteForm';
 import './MyPage.css';
+import './MyPageNoteStyles.css';
 
 function MyPage() {
   const [user, setUser] = useState(null);
   const [loans, setLoans] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [readingNotes, setReadingNotes] = useState([]);
   const [readingGoal, setReadingGoal] = useState(null);
   const [targetBooks, setTargetBooks] = useState('');
   const [activeTab, setActiveTab] = useState('loans');
   const [loading, setLoading] = useState(true);
+  const [selectedBookId, setSelectedBookId] = useState(null);
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [availableBooksForNotes, setAvailableBooksForNotes] = useState([]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -23,15 +31,20 @@ function MyPage() {
 
   const fetchMyPageData = async (memberId) => {
     try {
-      const [loansRes, reservationsRes, reviewsRes] = await Promise.all([
+      const [loansRes, reservationsRes, reviewsRes, notesRes] = await Promise.all([
         axios.get(`http://localhost:3000/api/members/${memberId}/loans`),
         axios.get(`http://localhost:3000/api/members/${memberId}/reservations`),
-        axios.get(`http://localhost:3000/api/members/${memberId}/reviews`)
+        axios.get(`http://localhost:3000/api/members/${memberId}/reviews`),
+        axios.get(`http://localhost:3000/api/reading-notes/member/${memberId}`)
       ]);
 
       setLoans(loansRes.data.data || []);
       setReservations(reservationsRes.data.data || []);
       setReviews(reviewsRes.data.data || []);
+      setReadingNotes(notesRes.data.data || []);
+      
+      // 필기 작성 가능한 책 목록 (대출 중이거나 대출 이력이 있는 책)
+      fetchAvailableBooksForNotes(memberId, loansRes.data.data || [], notesRes.data.data || []);
       
       // 독서 목표 별도 조회
       fetchReadingGoal(memberId);
@@ -40,6 +53,27 @@ function MyPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAvailableBooksForNotes = (memberId, allLoans, existingNotes) => {
+    // 대출 이력이 있는 모든 책 (중복 제거)
+    const uniqueBooks = [];
+    const bookIds = new Set();
+    const noteBookIds = new Set(existingNotes.map(note => note.book_id));
+
+    allLoans.forEach(loan => {
+      if (!bookIds.has(loan.book_id) && !noteBookIds.has(loan.book_id)) {
+        bookIds.add(loan.book_id);
+        uniqueBooks.push({
+          book_id: loan.book_id,
+          title: loan.title,
+          author: loan.author,
+          status: loan.status
+        });
+      }
+    });
+
+    setAvailableBooksForNotes(uniqueBooks);
   };
 
   const fetchReadingGoal = async (memberId) => {
@@ -120,6 +154,32 @@ function MyPage() {
     }
   };
 
+  // 필기 수정
+  const handleEditNote = (note) => {
+    setEditingNote({
+      ...note,
+      content: note.summary || note.content
+    });
+    setShowNoteForm(true);
+  };
+
+  // 필기 작성 (새 책)
+  const handleCreateNote = (book) => {
+    setEditingNote(null);
+    setShowNoteForm({
+      book_id: book.book_id,
+      title: book.title,
+      author: book.author
+    });
+  };
+
+  // 필기 저장 후
+  const handleNoteSuccess = () => {
+    setShowNoteForm(false);
+    setEditingNote(null);
+    fetchMyPageData(user.member_id);
+  };
+
   if (loading) {
     return <div className="loading-container">로딩 중...</div>;
   }
@@ -186,6 +246,12 @@ function MyPage() {
           ⭐ 서평 ({reviews.length})
         </button>
         <button
+          className={`tab ${activeTab === 'notes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('notes')}
+        >
+          📝 필기 ({readingNotes.length})
+        </button>
+        <button
           className={`tab ${activeTab === 'goals' ? 'active' : ''}`}
           onClick={() => setActiveTab('goals')}
         >
@@ -221,6 +287,12 @@ function MyPage() {
                       <p>반납예정일: {new Date(loan.due_date).toLocaleDateString()}</p>
                     </div>
                     <div className="item-actions">
+                      <button
+                        className="btn-action view"
+                        onClick={() => setSelectedBookId(loan.book_id)}
+                      >
+                        상세보기
+                      </button>
                       <button
                         className="btn-action primary"
                         onClick={() => handleReturn(loan.loan_id, loan.title)}
@@ -261,6 +333,14 @@ function MyPage() {
                       <span>대출일: {new Date(loan.loan_date).toLocaleDateString()}</span>
                       <span>반납일: {new Date(loan.return_date).toLocaleDateString()}</span>
                     </div>
+                    <div className="item-actions">
+                      <button
+                        className="btn-action view"
+                        onClick={() => setSelectedBookId(loan.book_id)}
+                      >
+                        상세보기
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -293,6 +373,12 @@ function MyPage() {
                     {reservation.status === 'active' && (
                       <div className="item-actions">
                         <button
+                          className="btn-action view"
+                          onClick={() => setSelectedBookId(reservation.book_id)}
+                        >
+                          상세보기
+                        </button>
+                        <button
                           className="btn-action danger"
                           onClick={() => handleCancelReservation(reservation.reservation_id, reservation.title)}
                         >
@@ -324,9 +410,104 @@ function MyPage() {
                       </div>
                     </div>
                     <p className="review-comment">{review.comment}</p>
-                    <p className="review-date">
-                      작성일: {new Date(review.review_date).toLocaleDateString()}
-                    </p>
+                    <div className="review-footer">
+                      <p className="review-date">
+                        작성일: {new Date(review.review_date).toLocaleDateString()}
+                      </p>
+                      <button
+                        className="btn-view-book"
+                        onClick={() => setSelectedBookId(review.book_id)}
+                      >
+                        📖 책 보기
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 필기 */}
+        {activeTab === 'notes' && (
+          <div className="content-section">
+            <h3>📝 독서 필기</h3>
+            
+            {/* 필기 작성 섹션 */}
+            {availableBooksForNotes.length > 0 && (
+              <div className="note-create-section">
+                <h4>✍️ 필기 작성하기</h4>
+                <p className="section-desc">대출 이력이 있는 책에 필기를 남겨보세요!</p>
+                <div className="available-books-grid">
+                  {availableBooksForNotes.map(book => (
+                    <div key={book.book_id} className="available-book-card">
+                      <h5>{book.title}</h5>
+                      <p className="book-author">{book.author}</p>
+                      <span className={`book-status-badge ${book.status}`}>
+                        {book.status === 'borrowed' || book.status === 'overdue' ? '대출중' : '대출완료'}
+                      </span>
+                      <button
+                        className="btn-create-note"
+                        onClick={() => handleCreateNote(book)}
+                      >
+                        📝 필기 작성
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 작성된 필기 목록 */}
+            <h4 style={{marginTop: '40px'}}>📚 작성한 필기 ({readingNotes.length})</h4>
+            {readingNotes.length === 0 ? (
+              <p className="empty-message">작성한 필기가 없습니다.</p>
+            ) : (
+              <div className="items-list">
+                {readingNotes.map(note => (
+                  <div key={note.note_id} className="item-card note-card">
+                    <div className="item-header">
+                      <h4>{note.title}</h4>
+                      <div className="rating">
+                        {'⭐'.repeat(note.rating)}
+                      </div>
+                    </div>
+                    <p className="note-author">저자: {note.author}</p>
+                    {note.key_points && (
+                      <p className="note-page">📖 {note.key_points}</p>
+                    )}
+                    
+                    <div className="note-content">
+                      <h5>📝 내 필기</h5>
+                      <p className="note-text">{note.summary || note.content}</p>
+                    </div>
+                    
+                    {note.favorite_quote && (
+                      <div className="note-quote">
+                        <h5>📌 중요 문장</h5>
+                        <blockquote>{note.favorite_quote}</blockquote>
+                      </div>
+                    )}
+                    
+                    <div className="note-footer">
+                      <p className="note-date">
+                        작성일: {new Date(note.created_at).toLocaleDateString()}
+                      </p>
+                      <div className="note-actions">
+                        <button
+                          className="btn-edit-note"
+                          onClick={() => handleEditNote(note)}
+                        >
+                          ✏️ 수정
+                        </button>
+                        <button
+                          className="btn-view-book"
+                          onClick={() => setSelectedBookId(note.book_id)}
+                        >
+                          📖 책 보기
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -410,6 +591,32 @@ function MyPage() {
           </div>
         )}
       </div>
+
+      {/* 책 상세보기 모달 */}
+      {selectedBookId && (
+        <BookDetail 
+          bookId={selectedBookId} 
+          onClose={() => setSelectedBookId(null)}
+        />
+      )}
+
+      {/* 필기 작성/수정 모달 */}
+      {showNoteForm && (
+        <ReadingNoteForm
+          bookInfo={showNoteForm.book_id ? showNoteForm : {
+            book_id: editingNote.book_id,
+            title: editingNote.title,
+            author: editingNote.author
+          }}
+          memberId={user.member_id}
+          onClose={() => {
+            setShowNoteForm(false);
+            setEditingNote(null);
+          }}
+          onSuccess={handleNoteSuccess}
+          existingNote={editingNote}
+        />
+      )}
     </div>
   );
 }
