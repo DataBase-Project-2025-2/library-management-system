@@ -24,6 +24,7 @@ const reviewsRoutes = require('./routes/reviews');
 const statisticsRoutes = require('./routes/statistics');
 const readingRoutes = require('./routes/reading');
 const readingGoalsRoutes = require('./routes/reading-goals');
+const seatsRoutes = require('./routes/seats'); 
 
 app.use('/api/auth', authRoutes);
 app.use('/api/members', membersRoutes);
@@ -33,7 +34,8 @@ app.use('/api/reservations', reservationsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/statistics', statisticsRoutes);
 app.use('/api/reading', readingRoutes);
-app.use('/api/reading-goals', readingGoalsRoutes); 
+app.use('/api/reading-goals', readingGoalsRoutes);
+app.use('/api/seats', seatsRoutes); 
 
 // 기본 라우트
 app.get('/', (req, res) => {

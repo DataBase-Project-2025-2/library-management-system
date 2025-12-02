@@ -7,6 +7,7 @@ import MyPage from './components/MyPage';
 import './App.css';
 import PopularBooks from './components/PopularBooks';
 import NewArrivals from './components/NewArrivals';
+import SeatReservation from './components/SeatReservation';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -75,6 +76,13 @@ function App() {
               👤 마이페이지
             </button>
             <button
+              className={`nav-btn ${currentPage === 'seats' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('seats')}
+              style={{ display: user.isAdmin ? 'none' : 'block' }}
+            >
+              🪑 좌석예약
+            </button>
+            <button
               className="nav-btn logout-btn"
               onClick={handleLogout}
             >
@@ -92,6 +100,7 @@ function App() {
         {currentPage === 'dashboard' && user.isAdmin && <Dashboard />}
         {currentPage === 'mypage' && !user.isAdmin && <MyPage />}
         {currentPage === 'popular' && <PopularBooks />}
+        {currentPage === 'seats' && !user.isAdmin && <SeatReservation />}
       </main>
     </div>
   );

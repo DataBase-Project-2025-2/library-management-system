@@ -1,0 +1,460 @@
+.seat-reservation-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-header h1 {
+  font-size: 36px;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* 탭 메뉴 */
+.seat-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: white;
+  padding: 10px;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.seat-tab {
+  flex: 1;
+  padding: 15px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.seat-tab:hover:not(:disabled) {
+  background: #f8f9fa;
+  color: #667eea;
+}
+
+.seat-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.seat-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* 구역 선택 */
+.zones-section h2 {
+  font-size: 24px;
+  color: #333;
+  margin: 0 0 20px 0;
+}
+
+.zones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.zone-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.zone-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.zone-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.zone-card h3 {
+  font-size: 20px;
+  color: #333;
+  margin: 0 0 20px 0;
+}
+
+.zone-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.zone-stat {
+  text-align: center;
+}
+
+.zone-stat .stat-label {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 5px;
+}
+
+.zone-stat .stat-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.zone-stat.available .stat-value {
+  color: #43e97b;
+}
+
+.occupancy-bar {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.occupancy-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #43e97b 0%, #667eea 100%);
+  transition: width 0.5s ease;
+}
+
+.occupancy-text {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 15px 0;
+}
+
+.select-zone-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select-zone-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 좌석 선택 */
+.seats-section {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.seats-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.back-btn {
+  padding: 10px 20px;
+  background: #e9ecef;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #dee2e6;
+}
+
+.seats-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.seats-legend {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seat-mini {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+}
+
+.seat-mini.available {
+  background: #43e97b;
+}
+
+.seat-mini.occupied {
+  background: #ff6b6b;
+}
+
+.seat-mini.unavailable {
+  background: #adb5bd;
+}
+
+.seats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 10px;
+  max-width: 100%;
+}
+
+.seat-item {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #43e97b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  font-weight: 600;
+  color: white;
+}
+
+.seat-item:hover:not(.occupied):not(.unavailable) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(67, 233, 123, 0.4);
+}
+
+.seat-item.occupied {
+  background: #ff6b6b;
+  cursor: not-allowed;
+}
+
+.seat-item.unavailable {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
+
+.seat-item.my-seat {
+  background: #667eea;
+  box-shadow: 0 0 0 3px #764ba2;
+}
+
+.seat-number {
+  font-size: 16px;
+}
+
+.seat-type-icon {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.my-seat-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #764ba2;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* 내 예약 */
+.myreservations-section h2 {
+  font-size: 24px;
+  color: #333;
+  margin: 0 0 30px 0;
+}
+
+.myreservations-section h3 {
+  font-size: 18px;
+  color: #666;
+  margin: 30px 0 15px 0;
+}
+
+.reservations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.reservation-card {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #667eea;
+}
+
+.reservation-card.past {
+  border-left-color: #adb5bd;
+  opacity: 0.7;
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.reservation-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: #43e97b;
+  color: white;
+}
+
+.status-badge.completed {
+  background: #667eea;
+  color: white;
+}
+
+.status-badge.cancelled {
+  background: #adb5bd;
+  color: white;
+}
+
+.status-badge.no_show {
+  background: #ff6b6b;
+  color: white;
+}
+
+.reservation-info {
+  margin-bottom: 15px;
+}
+
+.reservation-info p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.checked-in {
+  color: #43e97b !important;
+  font-weight: 600;
+}
+
+.checkin-btn {
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.checkin-btn:hover {
+  background: #764ba2;
+}
+
+.cancel-btn {
+  padding: 10px 20px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #ff5252;
+}
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .seat-tabs {
+    flex-direction: column;
+  }
+  
+  .zones-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .seats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 8px;
+  }
+  
+  .seats-legend {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
