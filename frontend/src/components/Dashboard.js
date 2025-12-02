@@ -1,102 +1,134 @@
 import React, { useState, useEffect } from 'react';
-import { statsAPI } from '../api';
+import axios from 'axios';
 import './Dashboard.css';
+import AdminBooks from './AdminBooks';
+import AdminMembers from './AdminMembers';
+import AdminLoans from './AdminLoans';
+import AdminStatistics from './AdminStatistics';
 
 function Dashboard() {
-  const [stats, setStats] = useState(null);
-  const [popularBooks, setPopularBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('statistics');
+  const [stats, setStats] = useState({
+    totalBooks: 0,
+    totalMembers: 0,
+    activeLoans: 0,
+    overdueLoans: 0
+  });
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardStats();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardStats = async () => {
     try {
-      setLoading(true);
-      const [statsRes, booksRes] = await Promise.all([
-        statsAPI.getDashboard(),
-        statsAPI.getPopularBooks(5)
-      ]);
-      
-      setStats(statsRes.data.data);
-      setPopularBooks(booksRes.data.data);
-      setError(null);
-    } catch (err) {
-      console.error('대시보드 데이터 로딩 오류:', err);
-      setError('데이터를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
+      // 도서 통계
+      const booksRes = await axios.get('http://localhost:3000/api/books');
+      const totalBooks = booksRes.data.data.length;
+
+      // 회원 통계
+      const membersRes = await axios.get('http://localhost:3000/api/admin/members/statistics');
+      const totalMembers = membersRes.data.data.overview.total_members;
+
+      // 대출 통계
+      const loansRes = await axios.get('http://localhost:3000/api/admin/operations/statistics/loans');
+      const activeLoans = loansRes.data.data.overview.active_loans;
+      const overdueLoans = loansRes.data.data.overview.overdue_loans;
+
+      setStats({
+        totalBooks,
+        totalMembers,
+        activeLoans,
+        overdueLoans
+      });
+    } catch (error) {
+      console.error('통계 조회 오류:', error);
     }
   };
 
-  if (loading) {
-    return <div className="loading">로딩 중...</div>;
-  }
-
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
-
   return (
-    <div className="dashboard">
-      <h1>📚 아주대학교 도서관 관리 시스템</h1>
-      
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>⚙️ 관리자 대시보드</h1>
+        <p>도서관 시스템 관리</p>
+      </div>
+
       {/* 통계 카드 */}
-      <div className="stats-grid">
+      <div className="dashboard-stats-grid">
         <div className="stat-card">
-          <h3>총 회원</h3>
-          <p className="stat-number">{stats?.total_members || 0}</p>
+          <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+            📚
+          </div>
+          <div className="stat-info">
+            <h3>{stats.totalBooks.toLocaleString()}</h3>
+            <p>총 도서</p>
+          </div>
         </div>
-        
+
         <div className="stat-card">
-          <h3>총 도서</h3>
-          <p className="stat-number">{stats?.total_books || 0}</p>
+          <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+            👥
+          </div>
+          <div className="stat-info">
+            <h3>{stats.totalMembers.toLocaleString()}</h3>
+            <p>총 회원</p>
+          </div>
         </div>
-        
+
         <div className="stat-card">
-          <h3>대출 중</h3>
-          <p className="stat-number">{stats?.current_loans || 0}</p>
+          <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
+            📖
+          </div>
+          <div className="stat-info">
+            <h3>{stats.activeLoans.toLocaleString()}</h3>
+            <p>대출 중</p>
+          </div>
         </div>
-        
-        <div className="stat-card warning">
-          <h3>연체</h3>
-          <p className="stat-number">{stats?.overdue_loans || 0}</p>
-        </div>
-        
+
         <div className="stat-card">
-          <h3>활성 예약</h3>
-          <p className="stat-number">{stats?.active_reservations || 0}</p>
-        </div>
-        
-        <div className="stat-card">
-          <h3>대출 가능</h3>
-          <p className="stat-number">{stats?.available_copies || 0}</p>
+          <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}>
+            ⚠️
+          </div>
+          <div className="stat-info">
+            <h3>{stats.overdueLoans.toLocaleString()}</h3>
+            <p>연체 중</p>
+          </div>
         </div>
       </div>
 
-      {/* 인기 도서 */}
-      <div className="popular-books">
-        <h2>📖 인기 도서 TOP 5</h2>
-        <div className="books-list">
-          {popularBooks.map((book, index) => (
-            <div key={book.book_id} className="book-item">
-              <span className="rank">#{index + 1}</span>
-              <div className="book-info">
-                <h3>{book.title}</h3>
-                <p className="author">{book.author}</p>
-                <p className="category">{book.category}</p>
-              </div>
-              <div className="book-stats">
-                <span className="loan-count">대출 {book.loan_count}회</span>
-                {book.average_rating && (
-                  <span className="rating">⭐ {book.average_rating}</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* 탭 메뉴 */}
+      <div className="dashboard-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'statistics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('statistics')}
+        >
+          📊 통계
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'books' ? 'active' : ''}`}
+          onClick={() => setActiveTab('books')}
+        >
+          📚 도서 관리
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'members' ? 'active' : ''}`}
+          onClick={() => setActiveTab('members')}
+        >
+          👥 회원 관리
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'loans' ? 'active' : ''}`}
+          onClick={() => setActiveTab('loans')}
+        >
+          📖 대출 관리
+        </button>
+      </div>
+
+      {/* 탭 컨텐츠 */}
+      <div className="dashboard-content">
+        {activeTab === 'statistics' && <AdminStatistics />}
+        {activeTab === 'books' && <AdminBooks onUpdate={fetchDashboardStats} />}
+        {activeTab === 'members' && <AdminMembers />}
+        {activeTab === 'loans' && <AdminLoans />}
       </div>
     </div>
   );

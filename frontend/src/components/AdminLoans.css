@@ -1,0 +1,230 @@
+.admin-loans {
+  width: 100%;
+}
+
+/* 헤더 */
+.admin-loans-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-bar label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filter-bar select {
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  background: white;
+}
+
+.btn-reservations {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-reservations:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+}
+
+/* 테이블 */
+.loans-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.loans-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.loans-table thead {
+  background: #f9fafb;
+}
+
+.loans-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.loans-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.loans-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.overdue-date {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.fee-amount {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* 상태 뱃지 */
+.status-badge.returned {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.overdue {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.active {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* 액션 버튼 */
+.btn-force-return {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-force-return:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.btn-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 16px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-contact:hover {
+  background: #d1fae5;
+  border-color: #10b981;
+}
+
+/* 예약 테이블 */
+.reservations-table-container {
+  overflow-x: auto;
+}
+
+.reservations-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reservations-table thead {
+  background: #f0f9ff;
+}
+
+.reservations-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e40af;
+  border-bottom: 2px solid #bfdbfe;
+}
+
+.reservations-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0f2fe;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.reservations-table tbody tr:hover {
+  background: #f0f9ff;
+}
+
+.btn-cancel-reservation {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-reservation:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .admin-loans-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .loans-table,
+  .reservations-table {
+    font-size: 12px;
+  }
+
+  .loans-table th,
+  .loans-table td,
+  .reservations-table th,
+  .reservations-table td {
+    padding: 8px 10px;
+  }
+}
