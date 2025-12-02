@@ -4,6 +4,7 @@ import BookList from './components/BookList';
 import Home from './components/Home';
 import Login from './components/Login';
 import MyPage from './components/MyPage';
+import Chatbot from './components/Chatbot';
 import './App.css';
 import PopularBooks from './components/PopularBooks';
 import NewArrivals from './components/NewArrivals';
@@ -102,6 +103,9 @@ function App() {
         {currentPage === 'popular' && <PopularBooks />}
         {currentPage === 'seats' && !user.isAdmin && <SeatReservation />}
       </main>
+
+      {/* AI 챗봇 */}
+      {!user.isAdmin && <Chatbot />}
     </div>
   );
 }
