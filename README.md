@@ -327,7 +327,7 @@ library-management-system/
 
 ## 👥 팀원
 
-- **개발자**: 채현우
+- **개발자**: 채희주
 - **GitHub**: https://github.com/DataBase-Project-2025-2
 
 ---
