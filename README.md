@@ -72,8 +72,8 @@ mysql -u root -p
 CREATE DATABASE ajou_library;
 USE ajou_library;
 
-# 방법 1: 전체 백업 복원 (구조 + 데이터 441개)
-source database/full_backup.sql
+# 방법 1: 전체 백업 복원 (구조 + 데이터 500+개) - UTF-8 인코딩
+source database/full_backup_utf8.sql
 
 # 방법 2: 스키마만 먼저 생성
 source database/schema.sql
@@ -158,7 +158,8 @@ library-management-system/
 └── database/
     ├── schema.sql             # 테이블 스키마
     ├── simple_test_data.sql   # 테스트 데이터
-    └── full_backup.sql        # 전체 백업 (구조 + 데이터)
+    ├── full_backup_utf8.sql   # 전체 백업 (구조 + 데이터, UTF-8)
+    └── schema_utf8.sql        # 스키마 (UTF-8)
 ```
 
 ---
