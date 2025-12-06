@@ -90,7 +90,7 @@ npm install
 # DB_PASSWORD=             # XAMPP 기본값은 빈 문자열
 # DB_NAME=ajou_library
 # DB_PORT=3306
-# PORT=3001                # 백엔드 포트 3001로 설정
+# PORT=3000                # 백엔드 포트 (기본값 유지)
 # JWT_SECRET=ajou_library_secret_key_2024
 # CORS_ORIGIN=http://localhost:3001
 # OPENAI_API_KEY=your_openai_api_key
@@ -108,7 +108,7 @@ npm start
 
 ### 5. 접속
 - **프론트엔드**: http://localhost:3001
-- **백엔드 API**: http://localhost:3001
+- **백엔드 API**: http://localhost:3000
 
 ### 6. 테스트 계정
 - **일반 사용자**: `202493433` / `1234`
