@@ -68,16 +68,15 @@ cd library-management-system
 # MySQL에 로그인
 mysql -u root -p
 
-# 데이터베이스 생성
-CREATE DATABASE ajou_library;
+# UTF-8 데이터베이스 생성 (한글 지원)
+CREATE DATABASE ajou_library CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE ajou_library;
 
-# 방법 1: 전체 백업 복원 (구조 + 데이터 500+개) - UTF-8 인코딩
+# 권장: 전체 백업 복원 (구조 + 데이터 500+개) - UTF-8 인코딩
 source database/full_backup_utf8.sql
 
-# 방법 2: 스키마만 먼저 생성
-source database/schema.sql
-source database/simple_test_data.sql
+# 대안: UTF-8 스키마만 생성
+source database/schema_utf8.sql
 ```
 
 ### 3. 백엔드 설정
@@ -85,13 +84,13 @@ source database/simple_test_data.sql
 cd backend
 npm install
 
-# .env 파일 생성
-# DB_HOST=localhost
+# .env 파일 생성 (또는 기존 .env 파일 수정)
+# DB_HOST=127.0.0.1        # XAMPP 사용 시 IPv4 주소로 설정
 # DB_USER=root
-# DB_PASSWORD=your_password
+# DB_PASSWORD=             # XAMPP 기본값은 빈 문자열
 # DB_NAME=ajou_library
 # DB_PORT=3306
-# PORT=3000
+# PORT=3001                # 백엔드 포트 3001로 설정
 # JWT_SECRET=ajou_library_secret_key_2024
 # CORS_ORIGIN=http://localhost:3001
 # OPENAI_API_KEY=your_openai_api_key
@@ -109,7 +108,7 @@ npm start
 
 ### 5. 접속
 - **프론트엔드**: http://localhost:3001
-- **백엔드 API**: http://localhost:3000
+- **백엔드 API**: http://localhost:3001
 
 ### 6. 테스트 계정
 - **일반 사용자**: `202493433` / `1234`
